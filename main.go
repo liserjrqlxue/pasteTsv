@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 
@@ -40,7 +41,8 @@ func main() {
 		*header = false
 	}
 	var inputList []*os.File
-	for _, file := range os.Args {
+	fmt.Printf("%+v\n", flag.Args())
+	for _, file := range flag.Args() {
 		var f = osUtil.Open(file)
 		inputList = append(inputList, f)
 	}
@@ -58,8 +60,8 @@ func main() {
 	var done = false
 	for {
 		var lines []string
+		var n = 0
 		for i, s := range scannerList {
-			var n = 0
 			var text = ""
 			if s.Scan() {
 				var line = strings.Split(s.Text(), *omitSep)
