@@ -58,7 +58,7 @@ func main() {
 	}
 
 	var done = false
-	for {
+	for !done {
 		var lines []string
 		var n = 0
 		for i, s := range scannerList {
@@ -67,6 +67,8 @@ func main() {
 				var line = strings.Split(s.Text(), *omitSep)
 				if i > 0 || !*header {
 					text = strings.Join(line[*omit:], *omitSep)
+				} else {
+					text = strings.Join(line, *omitSep)
 				}
 			} else {
 				n++
@@ -78,8 +80,5 @@ func main() {
 			lines = append(lines, text)
 		}
 		println(strings.Join(lines, *sep))
-		if done {
-			break
-		}
 	}
 }
