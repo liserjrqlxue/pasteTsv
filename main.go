@@ -27,21 +27,14 @@ var (
 		"\t",
 		"sep to split columns",
 	)
-	header = flag.Bool(
-		"header",
-		false,
-		"keep omit columns from first file",
-	)
 )
 
 func main() {
 	flag.Parse()
 	if *omit <= 0 {
 		*omit = 0
-		*header = false
 	}
 	var inputList []*os.File
-	fmt.Printf("%+v\n", flag.Args())
 	for _, file := range flag.Args() {
 		var f = osUtil.Open(file)
 		inputList = append(inputList, f)
@@ -64,11 +57,9 @@ func main() {
 		for i, s := range scannerList {
 			var text = ""
 			if s.Scan() {
-				var line = strings.Split(s.Text(), *omitSep)
-				if i > 0 || !*header {
-					text = strings.Join(line[*omit:], *omitSep)
-				} else {
-					text = strings.Join(line, *omitSep)
+				text = s.Text()
+				if i > 0 {
+					text = strings.Join(strings.Split(s.Text(), *omitSep)[*omit:], *omitSep)
 				}
 			} else {
 				n++
@@ -79,6 +70,6 @@ func main() {
 			}
 			lines = append(lines, text)
 		}
-		println(strings.Join(lines, *sep))
+		fmt.Println(strings.Join(lines, *sep))
 	}
 }
