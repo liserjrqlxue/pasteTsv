@@ -54,18 +54,30 @@ func main() {
 		var s = bufio.NewScanner(f)
 		scannerList = append(scannerList, s)
 	}
+
+	var done = false
 	for {
 		var lines []string
 		for i, s := range scannerList {
+			var n = 0
 			var text = ""
 			if s.Scan() {
 				var line = strings.Split(s.Text(), *omitSep)
 				if i > 0 || !*header {
 					text = strings.Join(line[*omit:], *omitSep)
 				}
+			} else {
+				n++
+			}
+			if n == len(scannerList) {
+				done = true
+				break
 			}
 			lines = append(lines, text)
 		}
 		println(strings.Join(lines, *sep))
+		if done {
+			break
+		}
 	}
 }
