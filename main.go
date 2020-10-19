@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"liser.jrqlxue/goUtil/osUtil"
-	"liser.jrqlxue/goUtil/simpleUtil"
+	"github.com/liserjrqlxue/goUtil/osUtil"
+	"github.com/liserjrqlxue/goUtil/simpleUtil"
 )
 
 var (
