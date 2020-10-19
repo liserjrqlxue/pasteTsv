@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/liserjrqlxue/goUtil/osUtil"
@@ -27,48 +26,60 @@ var (
 		"\t",
 		"sep to split columns",
 	)
+	chanLen = flag.Int(
+		"size",
+		1000,
+		"chan buffer size",
+	)
 )
+
+type bChan struct {
+	ch   chan string
+	flag chan int
+}
 
 func main() {
 	flag.Parse()
 	if *omit <= 0 {
 		*omit = 0
 	}
-	var inputList []*os.File
-	for _, file := range flag.Args() {
-		var f = osUtil.Open(file)
-		inputList = append(inputList, f)
-	}
-	defer func() {
-		for _, f := range inputList {
-			simpleUtil.CheckErr(f.Close())
+	var chanList []bChan
+	for i, file := range flag.Args() {
+		var ch = bChan{
+			ch:   make(chan string, *chanLen),
+			flag: make(chan int, *chanLen),
 		}
-	}()
-	var scannerList []*bufio.Scanner
-	for _, f := range inputList {
-		var s = bufio.NewScanner(f)
-		scannerList = append(scannerList, s)
-	}
-
-	var done = false
-	for !done {
-		var lines []string
-		var n = 0
-		for i, s := range scannerList {
+		chanList = append(chanList, ch)
+		var f = osUtil.Open(file)
+		go func(flag bool) {
+			defer simpleUtil.DeferClose(f)
+			var s = bufio.NewScanner(f)
 			var text = ""
-			if s.Scan() {
+			for s.Scan() {
 				text = s.Text()
-				if *omit > 0 && i > 0 {
+				if *omit > 0 && flag {
 					text = strings.Join(strings.Split(s.Text(), *omitSep)[*omit:], *omitSep)
 				}
-			} else {
-				n++
+				ch.ch <- text
+				ch.flag <- 1
 			}
-			if n == len(scannerList) {
-				done = true
-				break
+			simpleUtil.CheckErr(s.Err())
+			for {
+				ch.ch <- ""
+				ch.flag <- 0
 			}
-			lines = append(lines, text)
+		}(i > 0)
+	}
+
+	for {
+		var lines []string
+		var n = 0
+		for _, ch := range chanList {
+			lines = append(lines, <-ch.ch)
+			n += <-ch.flag
+		}
+		if n == 0 {
+			break
 		}
 		fmt.Println(strings.Join(lines, *sep))
 	}
