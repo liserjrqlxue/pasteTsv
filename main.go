@@ -58,7 +58,7 @@ func main() {
 			var text = ""
 			if s.Scan() {
 				text = s.Text()
-				if i > 0 {
+				if *omit > 0 && i > 0 {
 					text = strings.Join(strings.Split(s.Text(), *omitSep)[*omit:], *omitSep)
 				}
 			} else {
